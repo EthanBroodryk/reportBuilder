@@ -2,9 +2,18 @@ import React, { useState } from "react";
 import { usePage, Head } from "@inertiajs/react";
 import AppLayout from "@/layouts/app-layout";
 import axios from "axios";
+import { PageProps as InertiaPageProps } from "@inertiajs/core";
+
+// ✅ Extend Inertia's built-in PageProps
+interface PageProps extends InertiaPageProps {
+  files: {
+    name: string;
+    url: string;
+  }[];
+}
 
 export default function ReportBuilder() {
-  const { files } = usePage().props;
+  const { files } = usePage<PageProps>().props;
   const [uploading, setUploading] = useState(false);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +47,7 @@ export default function ReportBuilder() {
 
         <h2 className="text-xl mt-6 mb-2">Uploaded Files</h2>
         <ul className="list-disc pl-5">
-          {files.map((file: any, i: number) => (
+          {files.map((file, i) => (
             <li key={i}>
               <a
                 href={file.url}

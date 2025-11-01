@@ -13,10 +13,14 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Upload } from 'lucide-react';
 import AppLogo from './app-logo';
-import { Upload } from 'lucide-react';
 
+// ✅ Add the submenu and main menu items here:
+const reportBuilderSubmenu: NavItem[] = [
+    { title: 'Import Data', href: '/report-builder/import', icon: Upload },
+    { title: 'Build Report', href: '/report-builder/build', icon: LayoutGrid },
+];
 
 const mainNavItems: NavItem[] = [
     {
@@ -26,8 +30,9 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Report Builder',
-        href: '/report-builder',
+        href: '#',
         icon: Upload,
+        children: reportBuilderSubmenu, // 👈 add the dropdown items here
     },
 ];
 
@@ -60,6 +65,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
+                {/* ✅ This will render both the main items and the new dropdown */}
                 <NavMain items={mainNavItems} />
             </SidebarContent>
 

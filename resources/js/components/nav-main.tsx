@@ -1,68 +1,89 @@
-import React from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { useState } from "react";
+import { Link } from "@inertiajs/react";
 import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from '@/components/ui/collapsible';
-import { ChevronDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { type NavItem } from '@/types';
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+  SidebarMenuAction,
+} from "@/components/ui/sidebar";
+import { ChevronDown } from "lucide-react";
+import type { NavItem } from "@/types";
 
 interface NavMainProps {
   items: NavItem[];
 }
 
 export function NavMain({ items }: NavMainProps) {
-  const { url } = usePage();
+  // Track which submenu is open
+  const [openItem, setOpenItem] = useState<string | null>(null);
+
+  const toggleItem = (title: string) => {
+    setOpenItem((prev) => (prev === title ? null : title));
+  };
 
   return (
-    <nav className="space-y-1">
-      {items.map((item, index) => (
-        <div key={index}>
-          {/* If this item has children, render as collapsible */}
-          {item.children ? (
-            <Collapsible>
-              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800">
-                <div className="flex items-center space-x-2">
-                  {item.icon && <item.icon className="h-4 w-4" />}
-                  <span>{item.title}</span>
-                </div>
-                <ChevronDown className="h-4 w-4 opacity-70" />
-              </CollapsibleTrigger>
+    <SidebarMenu>
+      {items.map((item) => {
+        const isOpen = openItem === item.title;
+        const hasChildren = !!item.children?.length;
 
-              <CollapsibleContent className="pl-6 mt-1 space-y-1">
-                {item.children.map((child, childIndex) => (
-                  <Link
-                    key={childIndex}
-                    href={child.href}
-                    className={cn(
-                      'block rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
-                      url === child.href && 'bg-gray-200 dark:bg-gray-900 font-semibold'
-                    )}
-                  >
-                    <div className="flex items-center space-x-2">
-                      {child.icon && <child.icon className="h-4 w-4" />}
-                      <span>{child.title}</span>
-                    </div>
-                  </Link>
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
-          ) : (
-            <Link
-              href={item.href}
-              className={cn(
-                'flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800',
-                url === item.href && 'bg-gray-200 dark:bg-gray-900 font-semibold'
-              )}
+        return (
+          <SidebarMenuItem key={item.title}>
+            <SidebarMenuButton
+              asChild={!hasChildren} // only use Link directly if no submenu
+              onClick={
+                hasChildren
+                  ? () => toggleItem(item.title)
+                  : undefined
+              }
             >
-              {item.icon && <item.icon className="h-4 w-4" />}
-              <span>{item.title}</span>
-            </Link>
-          )}
-        </div>
-      ))}
-    </nav>
+              {hasChildren ? (
+                <div className="flex w-full items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <item.icon className="size-4 shrink-0" />
+                    <span className="truncate group-data-[collapsible=icon]:hidden">
+                      {item.title}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    className={`size-4 transition-transform duration-200 group-data-[collapsible=icon]:hidden ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
+              ) : (
+                <Link href={item.href}>
+                  <item.icon className="size-4 shrink-0" />
+                  <span className="truncate group-data-[collapsible=icon]:hidden">
+                    {item.title}
+                  </span>
+                </Link>
+              )}
+            </SidebarMenuButton>
+
+            {/* Submenu */}
+            {hasChildren && isOpen && (
+              <SidebarMenuSub>
+                {item.children.map((sub) => (
+                  <SidebarMenuSubItem key={sub.title}>
+                    <SidebarMenuSubButton asChild>
+                      <Link href={sub.href}>
+                        <sub.icon className="size-4 shrink-0" />
+                        <span className="truncate group-data-[collapsible=icon]:hidden">
+                          {sub.title}
+                        </span>
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                ))}
+              </SidebarMenuSub>
+            )}
+          </SidebarMenuItem>
+        );
+      })}
+    </SidebarMenu>
   );
 }

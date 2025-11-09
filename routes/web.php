@@ -6,10 +6,22 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ReportBuilderController;
+use App\Http\Controllers\DataController;
+
+Route::prefix('data')->group(function () {
+    Route::get('/', [DataController::class, 'importData'])->name('data.index');
+    Route::post('/import-data/upload', [DataController::class, 'upload'])->name('data.store');
+    Route::get('/import-data/data/{filename}', [DataController::class, 'getData']);
+});
+
+
+
 
 Route::get('/report-builder', [ReportBuilderController::class, 'index'])->name('report.builder');
 Route::post('/report-builder/upload', [ReportBuilderController::class, 'upload'])->name('report.builder.upload');
 Route::get('/report-builder/files/{filename}', [ReportBuilderController::class, 'show'])->name('report.builder.show');
+
+
 
 Route::get('/', function () {
     return Inertia::render('welcome', [

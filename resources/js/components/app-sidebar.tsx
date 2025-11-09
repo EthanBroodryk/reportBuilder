@@ -11,16 +11,16 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types'; // ✅ Keep this import only
+import { type NavItem } from '@/types'; // ✅ Import updated type
 import { Link } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Upload } from 'lucide-react';
 import AppLogo from './app-logo';
 
-// ✅ Submenu items for "Report Builder"
 const reportBuilderSubmenu: NavItem[] = [
-    { title: 'Import Data', href: '/report-builder/import', icon: Upload },
+    { title: 'Import Data', href: '/data', icon: Upload },
     { title: 'Build Report', href: '/report-builder/build', icon: LayoutGrid },
 ];
+
 
 // ✅ Main navigation items
 const mainNavItems: NavItem[] = [
@@ -33,7 +33,7 @@ const mainNavItems: NavItem[] = [
         title: 'Report Builder',
         href: '#',
         icon: Upload,
-        children: reportBuilderSubmenu, // ✅ Type-safe now
+        children: reportBuilderSubmenu, // ✅ Now valid type
     },
 ];
 

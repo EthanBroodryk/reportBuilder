@@ -25,13 +25,14 @@ class DataController extends Controller
  public function upload(Request $request)
 {
     $request->validate([
-        'file' => 'required|mimes:xlsx,xls|max:5120', // up to 5MB
+        'file' => 'required|mimes:xlsx,xls|max:5120', 
     ]);
 
     $file = $request->file('file');
-    $filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName()); // optional, safer filenames
-    $path = $file->storeAs('imports', $filename, 'public');
+    $fileName = $file->getClientOriginalName();
+    $path = $file->storeAs('public/imports', $fileName);
 
+    
     return response()->json([
         'message' => 'File uploaded successfully!',
         'filename' => basename($path),
@@ -51,12 +52,13 @@ public function getData($filename)
     $spreadsheet = IOFactory::load($path);
     $sheet = $spreadsheet->getActiveSheet();
     $rows = $sheet->toArray();
-
     // Convert first row to headers
-    $headers = array_shift($rows);
+    $headers = array_shift($rows); // first row = headers
     $data = [];
 
     foreach ($rows as $row) {
+        // Fill missing values with null
+        $row = array_pad($row, count($headers), null);
         $data[] = array_combine($headers, $row);
     }
 

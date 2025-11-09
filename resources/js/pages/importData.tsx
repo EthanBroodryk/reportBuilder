@@ -5,26 +5,28 @@ import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 
 
+type ImportDataProps = {
+  files?: string[];
+};
+
+export default function ImportData({ files: initialFiles }: ImportDataProps) {
+
+  const [files, setFiles] = useState<string[]>(initialFiles || []);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [excelData, setExcelData] = useState<Array<Record<string, any>>>([]);
 
 
-export default function ImportData({ files: initialFiles }) {
-
-  
-  const [files, setFiles] = useState(initialFiles || []);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [excelData, setExcelData] = useState([]);
-
-  const onDrop = (acceptedFiles) => {
+  const onDrop = (acceptedFiles: File[]) => {
     const formData = new FormData();
     formData.append('file', acceptedFiles[0]);
 
     axios.post('/data/import-data/upload', formData)
-    .then((res) => {
-      alert('File uploaded!');
-      setFiles([...files, acceptedFiles[0].name]);
-    });
-
+      .then((res) => {
+        alert('File uploaded!');
+        setFiles([...files, acceptedFiles[0].name]);
+      });
   };
+
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -32,7 +34,7 @@ export default function ImportData({ files: initialFiles }) {
     multiple: false,
   });
 
-  const loadFileData = (filename) => {
+  const loadFileData = (filename: string) => {
     axios.get(`/data/import-data/data/${filename}`).then((res) => {
       setExcelData(res.data);
     });

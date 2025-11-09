@@ -90,10 +90,10 @@ export default function ImportData({ files: initialFiles }) {
           </h3>
 
           <table className="min-w-full border border-gray-300 text-sm">
-            <thead className="bg-gray-100">
+            <thead className="bg-gray-50">
               <tr>
                 {Object.keys(excelData[0]).map((header) => (
-                  <th key={header} className="px-4 py-2 border-b border-gray-300 text-left">
+                  <th key={header}  className="px-4 py-2 border-b border-gray-300 text-left text-gray-800">
                     {header}
                   </th>
                 ))}

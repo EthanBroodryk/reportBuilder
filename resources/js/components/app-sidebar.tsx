@@ -11,18 +11,31 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types'; // ✅ Import updated type
+import { type NavItem } from '@/types'; 
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Upload } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Upload, FileText, BarChart3} from 'lucide-react';
 import AppLogo from './app-logo';
+
+
+const reportsSubmenu: NavItem[] = [
+    { title: 'Sales Report', href: '/reports/sales', icon: BarChart3 },
+    { title: 'Finance Report', href: '/reports/finance', icon: FileText },
+    { title: 'Active Loans Report', href: '/reports/loans', icon: FileText },
+];
 
 const reportBuilderSubmenu: NavItem[] = [
     { title: 'Import Data', href: '/data', icon: Upload },
     { title: 'Build Report', href: '/report-builder/build', icon: LayoutGrid },
+    { 
+        title: 'Reports', 
+        href: '#', 
+        icon: FileText,
+        children: reportsSubmenu, 
+    },
 ];
 
 
-// ✅ Main navigation items
+
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
@@ -33,7 +46,7 @@ const mainNavItems: NavItem[] = [
         title: 'Report Builder',
         href: '#',
         icon: Upload,
-        children: reportBuilderSubmenu, // ✅ Now valid type
+        children: reportBuilderSubmenu, 
     },
 ];
 

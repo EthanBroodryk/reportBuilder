@@ -61,11 +61,10 @@ function NavMenuItem({ item }: { item: NavItem }) {
 
       {hasChildren && isOpen && (
         <SidebarMenuSub>
-          {item.children.map((sub) => (
+          {item.children?.map((sub) => (
             <SidebarMenuSubItem key={sub.title}>
               <SidebarMenuSubButton asChild>
                 {sub.children?.length ? (
-                  // ✅ Recursive rendering for nested submenus
                   <NavMenuItem item={sub} />
                 ) : (
                   <Link href={sub.href}>
@@ -80,6 +79,7 @@ function NavMenuItem({ item }: { item: NavItem }) {
           ))}
         </SidebarMenuSub>
       )}
+
     </SidebarMenuItem>
   );
 }

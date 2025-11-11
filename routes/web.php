@@ -7,11 +7,28 @@ use Laravel\Fortify\Features;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ReportBuilderController;
 use App\Http\Controllers\DataController;
+use Illuminate\Support\Facades\File;
 
 Route::prefix('data')->group(function () {
     Route::get('/', [DataController::class, 'importData'])->name('data.index');
     Route::post('/import-data/upload', [DataController::class, 'upload'])->name('data.store');
     Route::get('/import-data/data/{filename}', [DataController::class, 'getData']);
+});
+
+
+Route::get('/api/reports',function(){
+
+    $path = public_path('storage/imports');
+    $files = collect(File::files($path))->map(function($file){
+        return [
+            'title' => pathinfo($file->getFilename(), PATHINFO_FILENAME),
+            'href' => '/reports/' . strtolower(str_replace(' ', '-', pathinfo($file->getFilename(), PATHINFO_FILENAME))),
+            'icon' => 'FileText', 
+        ];
+
+    });
+     return response()->json($files);
+
 });
 
 

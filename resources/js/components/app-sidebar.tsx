@@ -1,3 +1,5 @@
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -11,60 +13,62 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types'; 
+import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Upload, FileText, BarChart3} from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Upload, FileText } from 'lucide-react';
 import AppLogo from './app-logo';
 
-
-const reportsSubmenu: NavItem[] = [
-    { title: 'Sales Report', href: '/reports/sales', icon: BarChart3 },
-    { title: 'Finance Report', href: '/reports/finance', icon: FileText },
-    { title: 'Active Loans Report', href: '/reports/loans', icon: FileText },
-];
-
-const reportBuilderSubmenu: NavItem[] = [
-    { title: 'Import Data', href: '/data', icon: Upload },
-    { title: 'Build Report', href: '/report-builder/build', icon: LayoutGrid },
-    { 
-        title: 'Reports', 
-        href: '#', 
-        icon: FileText,
-        children: reportsSubmenu, 
-    },
-];
-
-
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Report Builder',
-        href: '#',
-        icon: Upload,
-        children: reportBuilderSubmenu, 
-    },
-];
-
-// ✅ Footer navigation items
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
+// 🔹 Fetch reports from Laravel
+export async function getFiles(): Promise<NavItem[]> {
+    try {
+        const response = await axios.get('/api/reports');
+        return response.data.map((file: any) => ({
+            ...file,
+            icon: FileText,
+        }));
+    } catch (error) {
+        console.error('Error fetching files:', error);
+        return [];
+    }
+}
 
 export function AppSidebar() {
+    // ✅ Holds reports fetched from Laravel
+    const [reportsSubmenu, setReportsSubmenu] = useState<NavItem[]>([]);
+
+    useEffect(() => {
+        getFiles().then((files) => {
+            console.log('Fetched files:', files);
+            setReportsSubmenu(files);
+        });
+    }, []);
+
+    const reportBuilderSubmenu: NavItem[] = [
+        { title: 'Import Data', href: '/data', icon: Upload },
+        { title: 'Build Report', href: '/report-builder/build', icon: LayoutGrid },
+        {
+            title: 'Reports',
+            href: '#',
+            icon: FileText,
+            children: reportsSubmenu, // ✅ dynamically loaded
+        },
+    ];
+
+    const mainNavItems: NavItem[] = [
+        { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+        {
+            title: 'Report Builder',
+            href: '#',
+            icon: Upload,
+            children: reportBuilderSubmenu,
+        },
+    ];
+
+    const footerNavItems: NavItem[] = [
+        { title: 'Repository', href: 'https://github.com/laravel/react-starter-kit', icon: Folder },
+        { title: 'Documentation', href: 'https://laravel.com/docs/starter-kits#react', icon: BookOpen },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -80,7 +84,6 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                {/* ✅ Renders main navigation including submenu */}
                 <NavMain items={mainNavItems} />
             </SidebarContent>
 

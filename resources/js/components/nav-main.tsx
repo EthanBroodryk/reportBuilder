@@ -19,30 +19,38 @@ export function NavMain({ items }: NavMainProps) {
   return (
     <SidebarMenu>
       {items.map((item) => (
-        <NavMenuItem key={item.title} item={item} />
+        <NavMenuItem key={item.title} item={item} isSubItem={false} />
       ))}
     </SidebarMenu>
   );
 }
 
-function NavMenuItem({ item }: { item: NavItem }) {
+function NavMenuItem({ item, isSubItem }: { item: NavItem; isSubItem: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const hasChildren = !!item.children?.length;
 
+  const Content = (
+    <>
+      {item.icon && <item.icon className="size-4 shrink-0" />}
+      <span className="truncate group-data-[collapsible=icon]:hidden">
+        {item.title}
+      </span>
+    </>
+  );
+
+  // 🔹 Use SidebarMenuItem for top-level items only
+  const Wrapper = isSubItem ? SidebarMenuSubItem : SidebarMenuItem;
+  const Button = isSubItem ? SidebarMenuSubButton : SidebarMenuButton;
+
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
+    <Wrapper>
+      <Button
         asChild={!hasChildren}
         onClick={hasChildren ? () => setIsOpen((o) => !o) : undefined}
       >
         {hasChildren ? (
           <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-2">
-              {item.icon && <item.icon className="size-4 shrink-0" />}
-              <span className="truncate group-data-[collapsible=icon]:hidden">
-                {item.title}
-              </span>
-            </div>
+            <div className="flex items-center gap-2">{Content}</div>
             <ChevronDown
               className={`size-4 transition-transform duration-200 group-data-[collapsible=icon]:hidden ${
                 isOpen ? "rotate-180" : ""
@@ -50,36 +58,17 @@ function NavMenuItem({ item }: { item: NavItem }) {
             />
           </div>
         ) : (
-          <Link href={item.href}>
-            {item.icon && <item.icon className="size-4 shrink-0" />}
-            <span className="truncate group-data-[collapsible=icon]:hidden">
-              {item.title}
-            </span>
-          </Link>
+          <Link href={item.href}>{Content}</Link>
         )}
-      </SidebarMenuButton>
+      </Button>
 
       {hasChildren && isOpen && (
         <SidebarMenuSub>
           {item.children?.map((sub) => (
-            <SidebarMenuSubItem key={sub.title}>
-              <SidebarMenuSubButton asChild>
-                {sub.children?.length ? (
-                  <NavMenuItem item={sub} />
-                ) : (
-                  <Link href={sub.href}>
-                    {sub.icon && <sub.icon className="size-4 shrink-0" />}
-                    <span className="truncate group-data-[collapsible=icon]:hidden">
-                      {sub.title}
-                    </span>
-                  </Link>
-                )}
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
+            <NavMenuItem key={sub.title} item={sub} isSubItem={true} />
           ))}
         </SidebarMenuSub>
       )}
-
-    </SidebarMenuItem>
+    </Wrapper>
   );
 }

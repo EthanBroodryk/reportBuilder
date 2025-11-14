@@ -44,23 +44,32 @@ function NavMenuItem({ item, isSubItem }: { item: NavItem; isSubItem: boolean })
 
   return (
     <Wrapper>
-      <Button
-        asChild={!hasChildren}
-        onClick={hasChildren ? () => setIsOpen((o) => !o) : undefined}
-      >
+    <Button
+        asChild={!hasChildren && !item.onClick}
+        onClick={item.onClick ?? (hasChildren ? () => setIsOpen(o => !o) : undefined)}
+    >
         {hasChildren ? (
-          <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-2">{Content}</div>
-            <ChevronDown
-              className={`size-4 transition-transform duration-200 group-data-[collapsible=icon]:hidden ${
-                isOpen ? "rotate-180" : ""
-              }`}
-            />
-          </div>
+            <div className="flex w-full items-center justify-between">
+                <div className="flex items-center gap-2">
+                    {Content}
+                </div>
+                <ChevronDown
+                    className={`size-4 transition-transform duration-200 ${
+                        isOpen ? 'rotate-180' : ''
+                    }`}
+                />
+            </div>
+        ) : item.onClick ? (
+            <span className="flex items-center gap-2">
+                {Content}
+            </span>
         ) : (
-          <Link href={item.href}>{Content}</Link>
+            <Link href={item.href} className="flex items-center gap-2">
+                {Content}
+            </Link>
         )}
-      </Button>
+    </Button>
+
 
       {hasChildren && isOpen && (
         <SidebarMenuSub>

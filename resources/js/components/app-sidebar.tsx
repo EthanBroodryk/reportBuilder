@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { Link,router } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Upload, FileText } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -36,12 +36,27 @@ export function AppSidebar() {
     // ✅ Holds reports fetched from Laravel
     const [reportsSubmenu, setReportsSubmenu] = useState<NavItem[]>([]);
 
+    // useEffect(() => {
+    //     getFiles().then((files) => {
+    //         console.log('Fetched files:', files);
+    //         setReportsSubmenu(files);
+    //     });
+    // }, []);
+
     useEffect(() => {
-        getFiles().then((files) => {
-            console.log('Fetched files:', files);
-            setReportsSubmenu(files);
-        });
-    }, []);
+    getFiles().then((files) => {
+        // Map the API files to include onClick to call /report-builder
+        const transformed = files.map((file) => ({
+            ...file,
+            onClick: () => {
+                router.visit(`/report-builder?file=${encodeURIComponent(file.title)}`);
+            },
+            href: undefined, // remove href to satisfy NavItem type
+        }));
+        setReportsSubmenu(transformed);
+    });
+}, []);
+
 
     const reportBuilderSubmenu: NavItem[] = [
         { title: 'Import Data', href: '/data', icon: Upload },
@@ -50,7 +65,7 @@ export function AppSidebar() {
             title: 'Reports',
             href: '#',
             icon: FileText,
-            children: reportsSubmenu, // ✅ dynamically loaded
+            children: reportsSubmenu,
         },
     ];
 

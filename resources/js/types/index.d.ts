@@ -15,14 +15,16 @@ export interface NavGroup {
     items: NavItem[];
 }
 
+
 export interface NavItem {
     title: string;
-    href?: string;
+    href?: string | RouteDefinition;
     icon?: LucideIcon | null;
     isActive?: boolean;
     children?: NavItem[];
-    onClick?: () => void; // optional
+    onClick?: () => void;
 }
+
 
 
 export interface SharedData {

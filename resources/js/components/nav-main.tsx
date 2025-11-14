@@ -38,7 +38,7 @@ function NavMenuItem({ item, isSubItem }: { item: NavItem; isSubItem: boolean })
     </>
   );
 
-  // 🔹 Use SidebarMenuItem for top-level items only
+  
   const Wrapper = isSubItem ? SidebarMenuSubItem : SidebarMenuItem;
   const Button = isSubItem ? SidebarMenuSubButton : SidebarMenuButton;
 

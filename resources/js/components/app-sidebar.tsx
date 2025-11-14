@@ -18,7 +18,7 @@ import { Link,router } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Upload, FileText } from 'lucide-react';
 import AppLogo from './app-logo';
 
-// 🔹 Fetch reports from Laravel
+
 export async function getFiles(): Promise<NavItem[]> {
     try {
         const response = await axios.get('/api/reports');
@@ -33,25 +33,16 @@ export async function getFiles(): Promise<NavItem[]> {
 }
 
 export function AppSidebar() {
-    // ✅ Holds reports fetched from Laravel
+  
     const [reportsSubmenu, setReportsSubmenu] = useState<NavItem[]>([]);
-
-    // useEffect(() => {
-    //     getFiles().then((files) => {
-    //         console.log('Fetched files:', files);
-    //         setReportsSubmenu(files);
-    //     });
-    // }, []);
-
     useEffect(() => {
     getFiles().then((files) => {
-        // Map the API files to include onClick to call /report-builder
         const transformed = files.map((file) => ({
             ...file,
             onClick: () => {
                 router.visit(`/report-builder?file=${encodeURIComponent(file.title)}`);
             },
-            href: undefined, // remove href to satisfy NavItem type
+            href: undefined, 
         }));
         setReportsSubmenu(transformed);
     });

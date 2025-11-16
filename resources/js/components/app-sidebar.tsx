@@ -51,7 +51,6 @@ export function AppSidebar() {
 
     const reportBuilderSubmenu: NavItem[] = [
         { title: 'Import Data', href: '/data', icon: Upload },
-        { title: 'Build Report', href: '/report-builder/build', icon: LayoutGrid },
         {
             title: 'Reports',
             href: '#',

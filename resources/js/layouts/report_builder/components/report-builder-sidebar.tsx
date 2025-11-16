@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { PieChart, BarChart3, LineChart, Table } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
-import { NavMain } from '@/components/nav-main';
+import { NavMain } from '@/layouts/report_builder/components/report-builder-navmain';
 import { NavUser } from '@/components/nav-user';
 import {
     Sidebar,
@@ -49,31 +50,57 @@ export function ReportBuilderSidebar() {
 }, []);
 
 
-    const reportBuilderSubmenu: NavItem[] = [
-        { title: 'Import Data', href: '/data', icon: Upload },
-        { title: 'Build Report', href: '/report-builder/build', icon: LayoutGrid },
-        {
-            title: 'Reports',
-            href: '#',
-            icon: FileText,
-            children: reportsSubmenu,
-        },
-    ];
 
-    const mainNavItems: NavItem[] = [
-        { title: 'Options', href: dashboard(), icon: LayoutGrid },
-        {
-            title: 'Report Builder',
-            href: '#',
-            icon: Upload,
-            children: reportBuilderSubmenu,
-        },
-    ];
 
     const footerNavItems: NavItem[] = [
         { title: 'Repository', href: 'https://github.com/laravel/react-starter-kit', icon: Folder },
         { title: 'Documentation', href: 'https://laravel.com/docs/starter-kits#react', icon: BookOpen },
     ];
+
+
+    const widgetsSubmenu: NavItem[] = [
+        {
+            title: 'Pie Chart',
+            icon: PieChart,
+            draggable: true,
+            widget: 'pie-chart'
+        },
+        {
+            title: 'Bar Chart',
+            icon: BarChart3,
+            draggable: true,
+            widget: 'bar-chart'
+        },
+        {
+            title: 'Line Chart',
+            icon: LineChart,
+            draggable: true,
+            widget: 'line-chart'
+        },
+        {
+            title: 'Table',
+            icon: Table,
+            draggable: true,
+            widget: 'table'
+        },
+   ];
+
+    const mainNavItems: NavItem[] = [
+        { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+        {
+            title: 'Report Builder',
+            href: '#',
+            icon: Upload,
+            children: [
+                {
+                    title: "Widgets",
+                    icon: LayoutGrid,
+                    children: widgetsSubmenu,
+                }
+            ]
+        },
+    ];
+
 
     return (
         <Sidebar collapsible="icon" variant="inset">

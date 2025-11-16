@@ -23,6 +23,8 @@ export interface NavItem {
     isActive?: boolean;
     children?: NavItem[];
     onClick?: () => void;
+    draggable?: boolean;
+    widget?: 'pie-chart' | 'bar-chart' | 'line-chart' | 'table';
 }
 
 

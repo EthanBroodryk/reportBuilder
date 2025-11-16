@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { usePage, Head } from "@inertiajs/react";
-import AppLayout from "@/layouts/app-layout";
+import ReportBuilderLayout from "@/layouts/report_builder/report-builder-layout";
 import axios from "axios";
 import { PageProps as InertiaPageProps } from "@inertiajs/core";
 
@@ -9,8 +9,8 @@ import { PageProps as InertiaPageProps } from "@inertiajs/core";
 
 export default function ReportBuilder() {
   return (
-    <AppLayout>
+    <ReportBuilderLayout>
       <Head title="Report Builder" />
-    </AppLayout>
+    </ReportBuilderLayout>
   );
 }

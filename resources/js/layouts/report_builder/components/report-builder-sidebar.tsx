@@ -3,6 +3,7 @@ import axios from 'axios';
 import { PieChart, BarChart3, LineChart, Table } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/layouts/report_builder/components/report-builder-navmain';
+// import {ReportBuilderSidebarHeader} from '@/layouts/report_builder/components/report-builder-sidebar-header'
 import { NavUser } from '@/components/nav-user';
 import {
     Sidebar,
@@ -18,6 +19,11 @@ import { type NavItem } from '@/types';
 import { Link,router } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Upload, FileText } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
+import { reportBuilder } from '@/routes';
+
+
+
+
 
 
 export async function getFiles(): Promise<NavItem[]> {
@@ -88,12 +94,12 @@ export function ReportBuilderSidebar() {
     const mainNavItems: NavItem[] = [
         { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
         {
-            title: 'Report Builder',
-            href: '#',
+            title: 'Widgets',
+            href: reportBuilder(),
             icon: Upload,
             children: [
                 {
-                    title: "Widgets",
+                    title: "Select Widget",
                     icon: LayoutGrid,
                     children: widgetsSubmenu,
                 }

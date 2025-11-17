@@ -31,12 +31,17 @@ Route::get('/api/reports',function(){
 
 });
 
+Route::prefix('report-builder')->name('report.')->group(function () {
+    Route::get('/', [ReportBuilderController::class, 'index'])->name('builder');
+    Route::post('/upload', [ReportBuilderController::class, 'upload'])->name('builder.upload');
+    Route::get('/files/{filename}', [ReportBuilderController::class, 'show'])->name('builder.show');
+});
 
 
 
-Route::get('/report-builder', [ReportBuilderController::class, 'index'])->name('report.builder');
-Route::post('/report-builder/upload', [ReportBuilderController::class, 'upload'])->name('report.builder.upload');
-Route::get('/report-builder/files/{filename}', [ReportBuilderController::class, 'show'])->name('report.builder.show');
+// Route::get('/report-builder', [ReportBuilderController::class, 'index'])->name('report.builder');
+// Route::post('/report-builder/upload', [ReportBuilderController::class, 'upload'])->name('report.builder.upload');
+// Route::get('/report-builder/files/{filename}', [ReportBuilderController::class, 'show'])->name('report.builder.show');
 
 
 

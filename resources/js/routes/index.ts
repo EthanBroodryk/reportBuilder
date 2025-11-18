@@ -364,32 +364,3 @@ dashboardForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> =
 })
 
 dashboard.form = dashboardForm
-
-//target
-
-/**
- * @route '/report-builder'
- */
-export const reportBuilder = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: reportBuilder.url(options),
-    method: 'get',
-});
-
-reportBuilder.definition = {
-    methods: ["get","head"],
-    url: '/report-builder',
-} satisfies RouteDefinition<["get","head"]>;
-
-reportBuilder.url = (options?: RouteQueryOptions) => {
-    return reportBuilder.definition.url + queryParams(options);
-};
-
-reportBuilder.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: reportBuilder.url(options),
-    method: 'get',
-});
-
-reportBuilder.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: reportBuilder.url(options),
-    method: 'head',
-});

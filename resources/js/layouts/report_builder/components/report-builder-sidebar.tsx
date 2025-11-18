@@ -19,7 +19,7 @@ import { type NavItem } from '@/types';
 import { Link,router } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Upload, FileText } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { reportBuilder } from '@/routes';
+
 
 
 
@@ -95,7 +95,7 @@ export function ReportBuilderSidebar() {
         { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
         {
             title: 'Widgets',
-            href: reportBuilder(),
+            href: '/report-builder',
             icon: Upload,
             children: [
                 {

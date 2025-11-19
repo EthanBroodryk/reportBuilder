@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "@inertiajs/react";
 import {
   SidebarMenu,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sidebar";
 import { ChevronDown } from "lucide-react";
 import type { NavItem } from "@/types";
+import DraggableWidgetItem from "@/layouts/report_builder/components/DraggableWidgetItem";
 
 interface NavMainProps {
   items: NavItem[];
@@ -29,6 +30,19 @@ function NavMenuItem({ item, isSubItem }: { item: NavItem; isSubItem: boolean })
   const [isOpen, setIsOpen] = useState(false);
   const hasChildren = !!item.children?.length;
 
+  const Wrapper = isSubItem ? SidebarMenuSubItem : SidebarMenuItem;
+  const Button = isSubItem ? SidebarMenuSubButton : SidebarMenuButton;
+
+  // Draggable widget
+  if (item.draggable && item.widget) {
+    return (
+      <Wrapper>
+        <DraggableWidgetItem item={item} />
+      </Wrapper>
+    );
+  }
+
+  // Normal nav item
   const Content = (
     <>
       {item.icon && <item.icon className="size-4 shrink-0" />}
@@ -38,38 +52,29 @@ function NavMenuItem({ item, isSubItem }: { item: NavItem; isSubItem: boolean })
     </>
   );
 
-  
-  const Wrapper = isSubItem ? SidebarMenuSubItem : SidebarMenuItem;
-  const Button = isSubItem ? SidebarMenuSubButton : SidebarMenuButton;
-
   return (
     <Wrapper>
-    <Button
+      <Button
         asChild={!hasChildren && !item.onClick}
-        onClick={item.onClick ?? (hasChildren ? () => setIsOpen(o => !o) : undefined)}
-    >
+        onClick={item.onClick ?? (hasChildren ? () => setIsOpen((o) => !o) : undefined)}
+      >
         {hasChildren ? (
-            <div className="flex w-full items-center justify-between">
-                <div className="flex items-center gap-2">
-                    {Content}
-                </div>
-                <ChevronDown
-                    className={`size-4 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180' : ''
-                    }`}
-                />
-            </div>
+          <div className="flex w-full items-center justify-between">
+            <div className="flex items-center gap-2">{Content}</div>
+            <ChevronDown
+              className={`size-4 transition-transform duration-200 ${
+                isOpen ? "rotate-180" : ""
+              }`}
+            />
+          </div>
         ) : item.onClick ? (
-            <span className="flex items-center gap-2">
-                {Content}
-            </span>
+          <span className="flex items-center gap-2">{Content}</span>
         ) : (
-            <Link href={item.href} className="flex items-center gap-2">
-                {Content}
-            </Link>
+          <Link href={item.href} className="flex items-center gap-2">
+            {Content}
+          </Link>
         )}
-    </Button>
-
+      </Button>
 
       {hasChildren && isOpen && (
         <SidebarMenuSub>

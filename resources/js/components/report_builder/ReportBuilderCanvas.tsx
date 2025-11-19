@@ -19,20 +19,23 @@ interface CanvasProps {
 
 export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
   const [widgets, setWidgets] = useState<DroppedWidget[]>([]);
-
-  const [{ isOver }, drop] = useDrop<
-    { type: WidgetType },
-    void,
-    { isOver: boolean }
-  >({
-    accept: 'WIDGET',
+ 
+  const [{ isOver }, drop] = useDrop<{ type: string },void,{ isOver: boolean }>({
+    accept: "WIDGET", 
     drop: (item) => {
-      setWidgets((prev) => [...prev, { id: Date.now(), type: item.type }]);
+      console.log("Dropped item:", item); 
+        console.log("fileData:", fileData); 
+      setWidgets((prev) => [
+        ...prev,
+        { id: Date.now(), type: item.type as WidgetType },
+      ]);
     },
-    collect: (monitor: DropTargetMonitor) => ({
+
+    collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
   });
+
 
   const renderWidget = useCallback(
     (widget: DroppedWidget) => {
@@ -66,3 +69,5 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
     </div>
   );
 }
+//////////////////////////////////////////////////////////////////////////////
+

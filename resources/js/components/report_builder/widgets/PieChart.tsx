@@ -1,38 +1,58 @@
-import React from 'react';
-import { Pie } from 'react-chartjs-2';
-import type { ChartData, ChartOptions } from 'chart.js';
+import React, { useEffect, useRef } from "react";
+import Chart from "chart.js/auto";
 
-interface Props {
+interface PieChartProps {
   data?: any;
 }
 
-export default function PieChart({ data }: Props) {
+export default function PieChart({ data }: PieChartProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const chartRef = useRef<Chart | null>(null);
+
   if (!data?.sheets?.length) return <p>No data</p>;
 
   const sheet = data.sheets[0];
-  const firstRow = sheet[0] || {};
 
-  const labels = Object.keys(firstRow);
+  const keys = Object.keys(sheet[0] || {});
+  const firstKey = keys[0]; // pick first column
 
-  // Convert all values to numbers, fallback to 0 if not a number
-  const values: number[] = Object.values(firstRow).map((v) =>
-    typeof v === 'number' ? v : Number(v) || 0
-  );
+  const labels = sheet.map((_: any, i: number) => `Row ${i + 1}`);
+  const values = sheet.map((row: any) => row[firstKey]);
 
-  const chartData: ChartData<'pie'> = {
+  const chartData = {
     labels,
     datasets: [
       {
+        label: firstKey,
         data: values,
-        backgroundColor: labels.map((_, i) => `hsl(${i * 60}, 70%, 50%)`),
+        backgroundColor: labels.map(
+  (_: any, i: number) => `hsla(${i * 45}, 70%, 50%, 0.8)`
+)
+
       },
     ],
   };
 
-  const options: ChartOptions<'pie'> = {
-    responsive: true,
-    plugins: { legend: { position: 'top' } },
-  };
+  useEffect(() => {
+    if (!canvasRef.current) return;
 
-  return <Pie data={chartData} options={options} />;
+    if (chartRef.current) {
+      chartRef.current.destroy();
+    }
+
+    chartRef.current = new Chart(canvasRef.current, {
+      type: "pie",
+      data: chartData,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "top" },
+        },
+      },
+    });
+
+    return () => chartRef.current?.destroy();
+  }, [data]);
+
+  return <canvas ref={canvasRef} />;
 }

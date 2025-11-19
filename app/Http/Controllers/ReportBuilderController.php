@@ -41,7 +41,7 @@ class ReportBuilderController extends Controller
         $array = Excel::toArray([], $fullPath);
 
         return Inertia::render('ReportBuilder', [
-            'fileData' => [
+        'fileData' => [
             'filename' => basename($matchedFile),
             'sheets'   => $array,
             ],

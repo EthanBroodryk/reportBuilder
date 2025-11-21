@@ -27,14 +27,15 @@ interface CanvasProps {
 const STORAGE_KEY = "report_builder_layout_v1";
 
 export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
+
   const [widgets, setWidgets] = useState<DroppedWidget[]>(() => {
-    // try to restore from localStorage
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) return JSON.parse(raw) as DroppedWidget[];
     } catch (e) { /* ignore */ }
     return [];
   });
+
 
   // used to compute drop coordinates relative to canvas
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -51,12 +52,15 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
     }
   }, [widgets]);
 
+
+
   // React-DnD drop handling
   const [{ isOver }, drop] = useDrop<{ type: string }, void, { isOver: boolean }>({
     accept: "WIDGET",
     drop: (item, monitor: DropTargetMonitor) => {
       // get client coords and convert to canvas local coords
       const clientOffset = monitor.getClientOffset();
+      
       if (!clientOffset || !containerRef.current) {
         // fallback: append in top-left corner
         addWidgetAt(20, 20, item.type as WidgetType);
@@ -64,6 +68,7 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
       }
 
       const rect = containerRef.current.getBoundingClientRect();
+   
       // clamp the position inside the canvas
       const x = Math.max(0, clientOffset.x - rect.left);
       const y = Math.max(0, clientOffset.y - rect.top);
@@ -95,6 +100,12 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
       },
     ]);
   }, []);
+
+
+
+
+
+
 
   // helper to update one widget
   const updateWidget = useCallback((id: number, patch: Partial<DroppedWidget>) => {
@@ -177,14 +188,17 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
         >
           {/* Widget header (drag handle + actions) */}
           <div
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-            }}
-            onMouseDown={() => bringToFront(w.id)}
-          >
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            position: "relative",
+            overflow: "hidden",
+          }}
+          onMouseDown={() => bringToFront(w.id)}
+        >
+
             <div
               style={{
                 display: "flex",
@@ -202,19 +216,23 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <button
                   onClick={(e) => {
-                    e.stopPropagation();
-                    removeWidget(w.id);
+                  e.stopPropagation();
+                  removeWidget(w.id);
                   }}
                   title="Remove"
                   style={{
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    padding: 4,
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  padding: 4,
+                  color: "#333",          // <--- ADD THIS
+                  fontSize: 14,           // <--- MAKE IT MORE VISIBLE
+                  fontWeight: "bold",     // <--- OPTIONAL, BUT NICE
                   }}
-                >
+                  >
                   ✕
                 </button>
+
               </div>
             </div>
 

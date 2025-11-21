@@ -1,47 +1,53 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
-import Chart from "chart.js/auto";
+"use client"
+
+import React, { useEffect, useRef, useState, useMemo } from "react"
+import Chart from "chart.js/auto"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 
 interface PieChartProps {
-  data?: any;
-  width?: number;
-  height?: number;
+  data?: any
+  width?: number
+  height?: number
 }
 
 export default function PieChart({ data, width = 300, height = 300 }: PieChartProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const chartRef = useRef<Chart | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const chartRef = useRef<Chart | null>(null)
 
-  if (!data?.sheets?.length) return <p>No data</p>;
+  if (!data?.sheets?.length)
+    return (
+      <div style={{ width, height }} className="flex items-center justify-center">
+        No data
+      </div>
+    )
 
-  const sheetRaw: any[][] = data.sheets[0];
+  const sheetRaw: any[][] = data.sheets[0]
 
-  if (!sheetRaw.length) return <p>No data</p>;
+  if (!sheetRaw.length)
+    return (
+      <div style={{ width, height }} className="flex items-center justify-center">
+        No data
+      </div>
+    )
 
-  // First row = labels
-  const labels = sheetRaw[0];
-
-  // Subsequent rows = datasets
-  const datasetsRaw = sheetRaw.slice(1);
-
-  // Default dataset names
-  const datasetNames = datasetsRaw.map((row, i) => `Series ${i + 1}`);
-
-  // Active series state
-  const [activeSeries, setActiveSeries] = useState<string[]>([...datasetNames]);
+  const labels = sheetRaw[0]
+  const datasetsRaw = sheetRaw.slice(1)
+  const datasetNames = datasetsRaw.map((_, i) => `Series ${i + 1}`)
+  const [activeSeries, setActiveSeries] = useState<string[]>([...datasetNames])
 
   const toggleSeries = (name: string) => {
     setActiveSeries((prev) =>
       prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name]
-    );
-  };
+    )
+  }
 
   const totals = useMemo(() => {
-    const result: Record<string, number> = {};
+    const result: Record<string, number> = {}
     datasetsRaw.forEach((row, i) => {
-      result[datasetNames[i]] = row.reduce((acc, val) => acc + Number(val ?? 0), 0);
-    });
-    return result;
-  }, [datasetsRaw, datasetNames]);
+      result[datasetNames[i]] = row.reduce((acc, val) => acc + Number(val ?? 0), 0)
+    })
+    return result
+  }, [datasetsRaw, datasetNames])
 
   const chartData = useMemo(
     () => ({
@@ -57,12 +63,11 @@ export default function PieChart({ data, width = 300, height = 300 }: PieChartPr
         .filter((d) => activeSeries.includes(d.label)),
     }),
     [labels, datasetsRaw, datasetNames, activeSeries]
-  );
+  )
 
   useEffect(() => {
-    if (!canvasRef.current) return;
-
-    if (chartRef.current) chartRef.current.destroy();
+    if (!canvasRef.current) return
+    if (chartRef.current) chartRef.current.destroy()
 
     chartRef.current = new Chart(canvasRef.current, {
       type: "pie",
@@ -73,35 +78,39 @@ export default function PieChart({ data, width = 300, height = 300 }: PieChartPr
           legend: { position: "top" },
         },
       },
-    });
+    })
 
-    return () => chartRef.current?.destroy();
-  }, [chartData]);
+    return () => chartRef.current?.destroy()
+  }, [chartData])
 
   return (
-    <div style={{ width, height, display: "flex", flexDirection: "column" }}>
-      {/* Series toggles */}
-      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 8 }}>
-        {datasetNames.map((name) => (
-          <button
-            key={name}
-            onClick={() => toggleSeries(name)}
-            style={{
-              padding: "2px 6px",
-              fontSize: 12,
-              cursor: "pointer",
-              backgroundColor: activeSeries.includes(name)
-                ? `hsl(${datasetNames.indexOf(name) * 60}, 70%, 90%)`
-                : "transparent",
-              border: "1px solid #ccc",
-              borderRadius: 4,
-            }}
-          >
-            {name}: {totals[name].toLocaleString()}
-          </button>
-        ))}
-      </div>
-      <canvas ref={canvasRef} width={width} height={height} />
-    </div>
-  );
+    <Card className="w-full">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <CardTitle>Pie Chart</CardTitle>
+          <CardDescription>Showing distribution of active series</CardDescription>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
+          {datasetNames.map((name) => (
+            <button
+              key={name}
+              onClick={() => toggleSeries(name)}
+              className={`px-3 py-1 text-sm rounded border ${
+                activeSeries.includes(name)
+                  ? "bg-muted text-muted-foreground border-muted"
+                  : "bg-transparent text-gray-700 border-gray-300"
+              }`}
+            >
+              {name}: {totals[name].toLocaleString()}
+            </button>
+          ))}
+        </div>
+      </CardHeader>
+
+      <CardContent className="flex justify-center items-center p-6">
+        <canvas ref={canvasRef} width={width} height={height} />
+      </CardContent>
+    </Card>
+  )
 }

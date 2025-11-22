@@ -2,7 +2,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDrop, DropTargetMonitor } from "react-dnd";
 import { Rnd } from "react-rnd";
-import type { NavItem } from "@/types";
 import LineChart from "@/components/report_builder/widgets/LineChart";
 import BarChart from "@/components/report_builder/widgets/BarChart";
 import PieChart from "@/components/report_builder/widgets/PieChart";
@@ -13,8 +12,8 @@ type WidgetType = "line-chart" | "bar-chart" | "pie-chart" | "table";
 interface DroppedWidget {
   id: number;
   type: WidgetType;
-  x: number; // px from left of canvas
-  y: number; // px from top of canvas
+  x: number;
+  y: number;
   width: number;
   height: number;
   zIndex?: number;
@@ -24,18 +23,22 @@ interface CanvasProps {
   fileData?: any;
 }
 
-const STORAGE_KEY = "report_builder_layout_v1";
-
 export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
+  // generate unique storage key per report
+  const storageKey = fileData?.filename
+    ? `report_builder_layout_v1_${fileData.filename}`
+    : "report_builder_layout_v1";
 
+  // Load widgets from storage specific to this report
   const [widgets, setWidgets] = useState<DroppedWidget[]>(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(storageKey);
       if (raw) return JSON.parse(raw) as DroppedWidget[];
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      // ignore errors
+    }
     return [];
   });
-
 
   // used to compute drop coordinates relative to canvas
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -43,36 +46,27 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
   // track next zIndex
   const zCounterRef = useRef<number>(1);
 
-  // Persist layout
+  // Persist layout whenever widgets change
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(widgets));
+      localStorage.setItem(storageKey, JSON.stringify(widgets));
     } catch (e) {
       // ignore storage errors
     }
-  }, [widgets]);
-
-
+  }, [widgets, storageKey]);
 
   // React-DnD drop handling
   const [{ isOver }, drop] = useDrop<{ type: string }, void, { isOver: boolean }>({
     accept: "WIDGET",
     drop: (item, monitor: DropTargetMonitor) => {
-      // get client coords and convert to canvas local coords
       const clientOffset = monitor.getClientOffset();
-      
       if (!clientOffset || !containerRef.current) {
-        // fallback: append in top-left corner
         addWidgetAt(20, 20, item.type as WidgetType);
         return;
       }
-
       const rect = containerRef.current.getBoundingClientRect();
-   
-      // clamp the position inside the canvas
       const x = Math.max(0, clientOffset.x - rect.left);
       const y = Math.max(0, clientOffset.y - rect.top);
-
       addWidgetAt(x, y, item.type as WidgetType);
     },
     collect: (monitor) => ({
@@ -80,32 +74,16 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
     }),
   });
 
-  // helper to add with default size and zIndex
+  // helper to add widget with default size
   const addWidgetAt = useCallback((x: number, y: number, type: WidgetType) => {
     const id = Date.now() + Math.floor(Math.random() * 1000);
-    const defaultSize = { width: 360, height: 240 }; // tweak defaults here
-
+    const defaultSize = { width: 360, height: 240 };
     const z = ++zCounterRef.current;
-
     setWidgets((prev) => [
       ...prev,
-      {
-        id,
-        type,
-        x,
-        y,
-        width: defaultSize.width,
-        height: defaultSize.height,
-        zIndex: z,
-      },
+      { id, type, x, y, width: defaultSize.width, height: defaultSize.height, zIndex: z },
     ]);
   }, []);
-
-
-
-
-
-
 
   // helper to update one widget
   const updateWidget = useCallback((id: number, patch: Partial<DroppedWidget>) => {
@@ -117,26 +95,21 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
     setWidgets((prev) => prev.filter((w) => w.id !== id));
   }, []);
 
-  // bring widget to front (update zIndex)
+  // bring widget to front
   const bringToFront = useCallback((id: number) => {
     const z = ++zCounterRef.current;
     updateWidget(id, { zIndex: z });
   }, [updateWidget]);
 
-  // render a widget body (chart or table)
+  // render widget body
   const renderWidgetBody = useCallback((w: DroppedWidget) => {
     const commonProps = { data: fileData, width: w.width, height: w.height };
     switch (w.type) {
-      case "line-chart":
-        return <LineChart key={w.id} {...commonProps} />;
-      case "bar-chart":
-        return <BarChart key={w.id} {...commonProps} />;
-      case "pie-chart":
-        return <PieChart key={w.id} {...commonProps} />;
-      case "table":
-        return <TableWidget key={w.id} {...commonProps} />;
-      default:
-        return null;
+      case "line-chart": return <LineChart key={w.id} {...commonProps} />;
+      case "bar-chart": return <BarChart key={w.id} {...commonProps} />;
+      case "pie-chart": return <PieChart key={w.id} {...commonProps} />;
+      case "table": return <TableWidget key={w.id} {...commonProps} />;
+      default: return null;
     }
   }, [fileData]);
 
@@ -144,8 +117,7 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
     <div
       ref={(node) => {
         containerRef.current = node;
-        // attach react-dnd drop ref to the same container
-        // typed cast because react-dnd's drop expects Ref<HTMLDivElement>
+        // attach react-dnd drop ref
         // @ts-ignore
         drop(node);
       }}
@@ -154,7 +126,6 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
       }`}
       style={{ overflow: "hidden" }}
     >
-      {/* render widgets as Rnd (draggable + resizable) */}
       {widgets.map((w) => (
         <Rnd
           key={w.id}
@@ -163,19 +134,14 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
           bounds="parent"
           onDragStart={() => bringToFront(w.id)}
           onResizeStart={() => bringToFront(w.id)}
-          onDragStop={(_, d) => {
-            // d.x/d.y are the new positions
-            updateWidget(w.id, { x: Math.max(0, Math.round(d.x)), y: Math.max(0, Math.round(d.y)) });
-          }}
-          onResizeStop={(_, __, ref, ____, delta) => {
-            // ref is the DOM element of the content; use offsetWidth/Height
-            const width = Math.max(60, ref.offsetWidth);
-            const height = Math.max(40, ref.offsetHeight);
-            updateWidget(w.id, { width, height });
-          }}
+          onDragStop={(_, d) =>
+            updateWidget(w.id, { x: Math.max(0, Math.round(d.x)), y: Math.max(0, Math.round(d.y)) })
+          }
+          onResizeStop={(_, __, ref) =>
+            updateWidget(w.id, { width: Math.max(60, ref.offsetWidth), height: Math.max(40, ref.offsetHeight) })
+          }
           style={{
             zIndex: w.zIndex ?? 1,
-            // small drop shadow and border for a nice widget look
             boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
             borderRadius: 8,
             overflow: "hidden",
@@ -184,59 +150,19 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
           }}
           minWidth={120}
           minHeight={80}
-          enableUserSelectHack={true}
+          enableUserSelectHack
         >
-          {/* Widget header (drag handle + actions) */}
           <div
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            position: "relative",
-            overflow: "hidden",
-          }}
-          onMouseDown={() => bringToFront(w.id)}
-        >
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "6px 8px",
-                borderBottom: "1px solid rgba(0,0,0,0.04)",
-                cursor: "move", // users see draggable header
-                background: "rgba(0,0,0,0.02)",
-              }}
-            >
-              <div style={{ fontSize: 12, fontWeight: 600 }}>
-                {w.type.replace("-", " ").toUpperCase()}
-              </div>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <button
-                  onClick={(e) => {
-                  e.stopPropagation();
-                  removeWidget(w.id);
-                  }}
-                  title="Remove"
-                  style={{
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  padding: 4,
-                  color: "#333",          // <--- ADD THIS
-                  fontSize: 14,           // <--- MAKE IT MORE VISIBLE
-                  fontWeight: "bold",     // <--- OPTIONAL, BUT NICE
-                  }}
-                  >
-                  ✕
-                </button>
-
-              </div>
+            style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", position: "relative" }}
+            onMouseDown={() => bringToFront(w.id)}
+          >
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 8px", borderBottom: "1px solid rgba(0,0,0,0.04)", cursor: "move", background: "rgba(0,0,0,0.02)" }}>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>{w.type.replace("-", " ").toUpperCase()}</div>
+              <button onClick={(e) => { e.stopPropagation(); removeWidget(w.id); }} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 14, fontWeight: "bold", color: "#333", padding: 4 }}>✕</button>
             </div>
 
-            {/* content area (chart/table) */}
+            {/* Content */}
             <div style={{ flex: 1, width: "100%", height: "100%", padding: 8, boxSizing: "border-box" }}>
               {renderWidgetBody(w)}
             </div>
@@ -244,7 +170,6 @@ export default function ReportBuilderCanvas({ fileData }: CanvasProps) {
         </Rnd>
       ))}
 
-      {/* empty state message */}
       {widgets.length === 0 && (
         <p className="text-gray-400 text-center p-6">Drag widgets here</p>
       )}

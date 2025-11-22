@@ -91,34 +91,50 @@ export default function LineChart({
     return () => chartRef.current?.destroy()
   }, [chartData, width, height])
 
-  return (
-    <Card className="py-4 sm:py-0">
-      <CardHeader className="flex flex-col sm:flex-row items-stretch border-b !p-0">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </div>
-        <div className="flex flex-wrap gap-2 px-6 pb-3 sm:pb-0">
-          {datasetNames.map((name, i) => (
-            <button
-              key={name}
-              onClick={() => toggleSeries(name)}
-              className={`text-sm px-3 py-1 border rounded ${
-                activeSeries.includes(name)
-                  ? "bg-muted/50 border-muted"
-                  : "bg-transparent border-gray-300"
-              }`}
-            >
-              {name}: {totals[name].toLocaleString()}
-            </button>
-          ))}
-        </div>
-      </CardHeader>
-      <CardContent className="px-2 sm:p-6">
-        <div style={{ width, height }} className="w-full h-full">
-          <canvas ref={canvasRef} width={width} height={height} />
-        </div>
-      </CardContent>
-    </Card>
-  )
+return (
+  <Card className="py-2 sm:py-0">
+    <CardHeader className="flex flex-col sm:flex-row items-stretch border-b !p-0">
+      {/* Left Side - Title + Description */}
+      <div className="flex flex-1 flex-col justify-center gap-0.5 px-3 pb-2 sm:pb-0">
+        <CardTitle className="text-xs font-semibold">{title}</CardTitle>
+        <CardDescription className="text-[10px] leading-tight">
+          {description}
+        </CardDescription>
+      </div>
+
+      {/* Right Side - Series Buttons */}
+      <div className="flex flex-wrap gap-1 px-2 pb-2 sm:pb-0">
+        {datasetNames.map((name) => (
+          <button
+            key={name}
+            onClick={() => toggleSeries(name)}
+            className={`text-[9px] px-1.5 py-0.5 border rounded-sm ${
+              activeSeries.includes(name)
+                ? "bg-muted/50 border-muted"
+                : "bg-transparent border-gray-300"
+            }`}
+          >
+            {name}: {totals[name].toLocaleString()}
+          </button>
+        ))}
+      </div>
+    </CardHeader>
+
+    <CardContent className="p-1 sm:p-2">
+      <div className="w-full h-full relative">
+        {/* Canvas fills container completely */}
+        <canvas
+          ref={canvasRef}
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "block",
+          }}
+        />
+      </div>
+    </CardContent>
+
+  </Card>
+);
+
 }

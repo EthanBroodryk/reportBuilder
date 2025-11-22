@@ -23,9 +23,11 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 interface Props {
   data?: any
+  width?: number
+  height?: number
 }
 
-export default function BarChart({ data }: Props) {
+export default function BarChart({ data, width, height }: Props) {
   if (!data?.sheets?.length) return <p>No data</p>
 
   const sheetRaw: any[][] = data.sheets[0]
@@ -65,40 +67,55 @@ export default function BarChart({ data }: Props) {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false, // <<---- CRITICAL FIX (same as LineChart)
     plugins: {
-      legend: { position: "top" as const },
+      legend: { display: false },
+      tooltip: { mode: "index" as const, intersect: false },
     },
     scales: {
-      x: { ticks: { maxRotation: 45, minRotation: 0 } },
+      x: {
+        ticks: { maxRotation: 45, minRotation: 0 },
+      },
+      y: {
+        ticks: { autoSkip: true },
+      },
     },
   }
 
   return (
-    <Card className="py-0">
+    <Card className="py-0 h-full w-full flex flex-col">
       <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:!py-0">
-          <CardTitle>Bar Chart - Interactive</CardTitle>
-          <CardDescription>Showing totals for the selected series</CardDescription>
+        <div className="flex flex-1 flex-col justify-center gap-0.5 px-3 py-2">
+          <CardTitle className="text-xs sm:text-sm">Bar Chart</CardTitle>
+          <CardDescription className="text-[10px] sm:text-xs">
+            Totals per series
+          </CardDescription>
         </div>
-        <div className="flex">
+
+        {/* SMALL AGGREGATE BUTTONS */}
+        <div className="flex flex-wrap gap-1 px-2 py-1">
           {datasetNames.map((name) => (
             <button
               key={name}
-              data-active={activeSeries.includes(name)}
-              className="data-[active=true]:bg-muted/50 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6"
               onClick={() => toggleSeries(name)}
+              className={`text-[9px] px-1.5 py-0.5 border rounded-sm ${
+                activeSeries.includes(name)
+                  ? "bg-muted/50 border-muted"
+                  : "bg-transparent border-gray-300"
+              }`}
             >
-              <span className="text-muted-foreground text-xs">{name}</span>
-              <span className="text-lg leading-none font-bold sm:text-2xl">
-                {totals[name].toLocaleString()}
-              </span>
+              {name}: {totals[name].toLocaleString()}
             </button>
           ))}
         </div>
       </CardHeader>
 
-      <CardContent className="px-2 sm:p-6">
-        <div className="h-[300px] w-full">
+      {/* Chart Container — always fills widget size */}
+      <CardContent className="p-1 flex-1">
+        <div
+          className="w-full h-full relative"
+          style={{ minHeight: 40 }} // ensures chart never collapses
+        >
           <Bar data={chartData} options={options} />
         </div>
       </CardContent>

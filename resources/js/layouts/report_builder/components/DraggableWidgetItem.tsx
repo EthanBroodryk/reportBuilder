@@ -22,12 +22,14 @@ export default function DraggableWidgetItem({ item }: DraggableWidgetItemProps) 
   return (
     <div
       ref={dragRef}
-      className={`flex items-center gap-2 p-2 rounded cursor-move ${
+      className={`flex items-center gap-2 p-2 rounded cursor-move group ${
         isDragging ? "opacity-50" : ""
       }`}
     >
-      {item.icon && <item.icon size={16} />}
-      <span>{item.title}</span>
+      {item.icon && <item.icon size={16} className="shrink-0" />}
+      <span className="truncate group-data-[collapsible=icon]:hidden">
+        {item.title}
+      </span>
     </div>
   );
 }

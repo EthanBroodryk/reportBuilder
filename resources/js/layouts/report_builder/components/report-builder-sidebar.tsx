@@ -84,7 +84,8 @@ export function ReportBuilderSidebar() {
       </SidebarHeader>
 
       {/* Sidebar content */}
-      <SidebarContent className="space-y-4">
+
+        <SidebarContent className="space-y-4" data-collapsible="icon">
         {/* Render widgets as draggable items */}
         <div className="px-2">
           <h3 className="text-gray-500 uppercase text-xs mb-2">Widgets</h3>

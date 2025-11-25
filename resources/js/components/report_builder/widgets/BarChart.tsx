@@ -33,21 +33,39 @@ export default function BarChart({ data, width, height }: Props) {
   const sheetRaw: any[][] = data.sheets[0]
   if (!sheetRaw.length) return <p>No data</p>
 
-  const labels = sheetRaw[0]
-  const datasetsRaw = sheetRaw.slice(1)
+  // --- Process data dynamically ---
+  let labels: string[] = []
+  let datasetsRaw: number[][] = []
+
+  const firstRow = sheetRaw[0]
+
+  // Detect Example 1 (multiple columns) vs Example 2 (single column)
+  if (firstRow.length > 2) {
+    // Example 1: first row = headers (months), first column = products
+    labels = sheetRaw[0].slice(1) // months as labels
+    datasetsRaw = sheetRaw.slice(1).map(row =>
+      row.slice(1).map((v: any) => Number(v ?? 0))
+    )
+  } else {
+    // Example 2: first column = labels, second column = values
+    labels = sheetRaw.slice(1).map(row => String(row[0])) // months
+    datasetsRaw = [sheetRaw.slice(1).map(row => Number(row[1] ?? 0))] // single dataset
+  }
+
+  // Dataset names
   const datasetNames = datasetsRaw.map((_, i) => `Series ${i + 1}`)
   const [activeSeries, setActiveSeries] = React.useState<string[]>([...datasetNames])
 
   const toggleSeries = (name: string) => {
-    setActiveSeries((prev) =>
-      prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name]
+    setActiveSeries(prev =>
+      prev.includes(name) ? prev.filter(s => s !== name) : [...prev, name]
     )
   }
 
   const totals = React.useMemo(() => {
     const result: Record<string, number> = {}
     datasetsRaw.forEach((row, i) => {
-      result[datasetNames[i]] = row.reduce((acc, val) => acc + Number(val ?? 0), 0)
+      result[datasetNames[i]] = row.reduce((acc, val) => acc + val, 0)
     })
     return result
   }, [datasetsRaw, datasetNames])
@@ -61,24 +79,20 @@ export default function BarChart({ data, width, height }: Props) {
           data: row,
           backgroundColor: `hsl(${i * 60}, 70%, 50%)`,
         }))
-        .filter((d) => activeSeries.includes(d.label)),
+        .filter(d => activeSeries.includes(d.label)),
     }
   }, [labels, datasetsRaw, datasetNames, activeSeries])
 
   const options = {
     responsive: true,
-    maintainAspectRatio: false, // <<---- CRITICAL FIX (same as LineChart)
+    maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       tooltip: { mode: "index" as const, intersect: false },
     },
     scales: {
-      x: {
-        ticks: { maxRotation: 45, minRotation: 0 },
-      },
-      y: {
-        ticks: { autoSkip: true },
-      },
+      x: { ticks: { maxRotation: 45, minRotation: 0 } },
+      y: { ticks: { autoSkip: true } },
     },
   }
 
@@ -92,9 +106,9 @@ export default function BarChart({ data, width, height }: Props) {
           </CardDescription>
         </div>
 
-        {/* SMALL AGGREGATE BUTTONS */}
+        {/* Toggle buttons for datasets */}
         <div className="flex flex-wrap gap-1 px-2 py-1">
-          {datasetNames.map((name) => (
+          {datasetNames.map(name => (
             <button
               key={name}
               onClick={() => toggleSeries(name)}
@@ -110,11 +124,10 @@ export default function BarChart({ data, width, height }: Props) {
         </div>
       </CardHeader>
 
-      {/* Chart Container — always fills widget size */}
       <CardContent className="p-1 flex-1">
         <div
           className="w-full h-full relative"
-          style={{ minHeight: 40 }} // ensures chart never collapses
+          style={{ minHeight: 40 }}
         >
           <Bar data={chartData} options={options} />
         </div>

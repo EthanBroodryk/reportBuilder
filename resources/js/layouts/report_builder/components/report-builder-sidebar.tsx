@@ -110,7 +110,7 @@ export function ReportBuilderSidebar() {
 
       {/* Footer */}
       <SidebarFooter>
-        <NavFooter items={footerNavItems} className="mt-auto" />
+        {/* <NavFooter items={footerNavItems} className="mt-auto" /> */}
         <NavUser />
       </SidebarFooter>
     </Sidebar>

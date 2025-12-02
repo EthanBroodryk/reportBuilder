@@ -83,6 +83,11 @@ export function ReportBuilderSidebar() {
         </SidebarMenu>
       </SidebarHeader>
 
+
+        {/* Render normal nav items */}
+        <NavMain items={mainNavItems} />
+
+
       {/* Sidebar content */}
 
         <SidebarContent className="space-y-4" data-collapsible="icon">
@@ -93,9 +98,6 @@ export function ReportBuilderSidebar() {
             <DraggableWidgetItem key={widget.title} item={widget} />
           ))}
         </div>
-
-        {/* Render normal nav items */}
-        <NavMain items={mainNavItems} />
 
         {/* Render reports dynamically */}
         {reportsSubmenu.length > 0 && (

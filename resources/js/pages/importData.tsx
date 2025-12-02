@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { useDropzone } from 'react-dropzone';
@@ -13,13 +13,15 @@ export default function ImportData({ files: initialFiles }: ImportDataProps) {
   const [files, setFiles] = useState<string[]>(initialFiles || []);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [excelData, setExcelData] = useState<Array<Record<string, any>>>([]);
+  const [columnRoles, setColumnRoles] = useState<Record<string, 'category' | 'value' | ''>>({});
 
-  // Breadcrumbs (no nulls)
+  // Breadcrumbs
   const breadcrumbs: BreadcrumbItem[] = [
     { title: "Report Builder", href: "/report-builder" },
     { title: "Import Data", href: "/report-builder/import" }
   ];
 
+  // Handle file upload
   const onDrop = (acceptedFiles: File[]) => {
     const formData = new FormData();
     formData.append('file', acceptedFiles[0]);
@@ -40,10 +42,65 @@ export default function ImportData({ files: initialFiles }: ImportDataProps) {
     multiple: false,
   });
 
+  // Load content of selected file
   const loadFileData = (filename: string) => {
     axios.get(`/data/import-data/data/${filename}`).then((res) => {
       setExcelData(res.data);
     });
+  };
+
+  // Initialize column roles when data loads
+  useEffect(() => {
+    if (excelData.length > 0) {
+      const headers = Object.keys(excelData[0]);
+      const defaultRoles = Object.fromEntries(headers.map(h => [h, '' as '' ]));
+      setColumnRoles(defaultRoles);
+    }
+  }, [excelData]);
+
+  // Handle select change
+  const handleRoleChange = (column: string, role: 'category' | 'value' | '') => {
+    // Only ONE category allowed
+    if (role === 'category') {
+      const updated = Object.fromEntries(
+        Object.keys(columnRoles).map(h => [h, h === column ? 'category' : (columnRoles[h] === 'category' ? '' : columnRoles[h])])
+      );
+      setColumnRoles(updated);
+    } else {
+      setColumnRoles({
+        ...columnRoles,
+        [column]: role
+      });
+    }
+  };
+
+  // Final save
+  const handleSaveMapping = () => {
+    const categoryColumn = Object.keys(columnRoles).find(col => columnRoles[col] === 'category');
+    const valueColumns = Object.keys(columnRoles).filter(col => columnRoles[col] === 'value');
+
+    if (!categoryColumn) {
+      alert("Please select a Category column.");
+      return;
+    }
+
+    if (valueColumns.length === 0) {
+      alert("Please select at least one Value column.");
+      return;
+    }
+
+    const mapping = {
+      file: selectedFile,
+      categoryColumn,
+      valueColumns
+    };
+
+    console.log("Saved Mapping:", mapping);
+
+    // Optional: send to backend
+    // axios.post('/data/import-data/mapping', mapping);
+
+    alert("Mapping saved!");
   };
 
   return (
@@ -64,7 +121,7 @@ export default function ImportData({ files: initialFiles }: ImportDataProps) {
           {isDragActive ? <p>Drop the file here ...</p> : <p>Drag & drop an Excel file here, or click to select</p>}
         </div>
 
-        {/* List uploaded files */}
+        {/* File List */}
         <div className="mt-4">
           <h2 className="font-semibold mb-2">Saved Files</h2>
           <ul className="space-y-2">
@@ -83,6 +140,36 @@ export default function ImportData({ files: initialFiles }: ImportDataProps) {
             ))}
           </ul>
         </div>
+
+        {/* Column Role Selector */}
+        {excelData.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-2">Assign Column Roles</h3>
+
+            {Object.keys(columnRoles).map((header) => (
+              <div key={header} className="flex items-center gap-4 mb-2">
+                <span className="w-40">{header}</span>
+
+                <select
+                  className="border p-1 rounded"
+                  value={columnRoles[header]}
+                  onChange={(e) => handleRoleChange(header, e.target.value as any)}
+                >
+                  <option value="">-- Select Role --</option>
+                  <option value="category">Category / Dimension</option>
+                  <option value="value">Value / Measure</option>
+                </select>
+              </div>
+            ))}
+
+            <button
+              onClick={handleSaveMapping}
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Save Mapping
+            </button>
+          </div>
+        )}
 
         {/* Excel Table */}
         {excelData.length > 0 && (

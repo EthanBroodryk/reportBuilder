@@ -10,7 +10,6 @@ type ImportDataProps = {
 };
 
 export default function ImportData({ files: initialFiles }: ImportDataProps) {
-  const [files, setFiles] = useState<string[]>(initialFiles || []);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [excelData, setExcelData] = useState<Array<Record<string, any>>>([]);
   const [columnRoles, setColumnRoles] = useState<Record<string, 'category' | 'value' | ''>>({});
@@ -21,15 +20,17 @@ export default function ImportData({ files: initialFiles }: ImportDataProps) {
     { title: "Import Data", href: "/report-builder/import" }
   ];
 
-  // Handle file upload
+  // Handle file upload / drop
   const onDrop = (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
     const formData = new FormData();
-    formData.append('file', acceptedFiles[0]);
+    formData.append('file', file);
 
     axios.post('/data/import-data/upload', formData)
       .then(() => {
         alert('File uploaded!');
-        setFiles([...files, acceptedFiles[0].name]);
+        setSelectedFile(file.name);
+        loadFileData(file.name);
       });
   };
 
@@ -59,20 +60,24 @@ export default function ImportData({ files: initialFiles }: ImportDataProps) {
   }, [excelData]);
 
   // Handle select change
-  const handleRoleChange = (column: string, role: 'category' | 'value' | '') => {
-    // Only ONE category allowed
-    if (role === 'category') {
-      const updated = Object.fromEntries(
-        Object.keys(columnRoles).map(h => [h, h === column ? 'category' : (columnRoles[h] === 'category' ? '' : columnRoles[h])])
-      );
-      setColumnRoles(updated);
-    } else {
-      setColumnRoles({
-        ...columnRoles,
-        [column]: role
-      });
-    }
-  };
+const handleRoleChange = (column: string, role: 'category' | 'value' | '') => {
+  if (role === 'category') {
+    const updated = Object.fromEntries(
+      Object.keys(columnRoles).map(h => [
+        h, 
+        (h === column ? 'category' : (columnRoles[h] === 'category' ? '' : columnRoles[h]))
+      ])
+    ) as Record<string, '' | 'category' | 'value'>; // <-- cast here
+
+    setColumnRoles(updated);
+  } else {
+    setColumnRoles({
+      ...columnRoles,
+      [column]: role
+    });
+  }
+};
+
 
   // Final save
   const handleSaveMapping = () => {
@@ -96,10 +101,6 @@ export default function ImportData({ files: initialFiles }: ImportDataProps) {
     };
 
     console.log("Saved Mapping:", mapping);
-
-    // Optional: send to backend
-    // axios.post('/data/import-data/mapping', mapping);
-
     alert("Mapping saved!");
   };
 
@@ -119,26 +120,6 @@ export default function ImportData({ files: initialFiles }: ImportDataProps) {
         >
           <input {...getInputProps()} />
           {isDragActive ? <p>Drop the file here ...</p> : <p>Drag & drop an Excel file here, or click to select</p>}
-        </div>
-
-        {/* File List */}
-        <div className="mt-4">
-          <h2 className="font-semibold mb-2">Saved Files</h2>
-          <ul className="space-y-2">
-            {files.map((file) => (
-              <li key={file}>
-                <button
-                  className="text-blue-600 underline"
-                  onClick={() => {
-                    setSelectedFile(file);
-                    loadFileData(file);
-                  }}
-                >
-                  {file}
-                </button>
-              </li>
-            ))}
-          </ul>
         </div>
 
         {/* Column Role Selector */}

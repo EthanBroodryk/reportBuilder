@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
-use PhpOffice\PhpSpreadsheet\IOFactory; // ✅ For reading Excel files
+use PhpOffice\PhpSpreadsheet\IOFactory; 
+use App\Models\ReportData;
 
 class DataController extends Controller
 {
@@ -20,6 +21,70 @@ class DataController extends Controller
             'files' => $files,
         ]);
     }
+
+// public function saveMapping(Request $request)
+// {
+
+//    // dd($request);
+//     $validated = $request->validate([
+//         'file' => 'required|string',
+//         'categoryColumn' => 'sometimes|string',
+//         'valueColumns' => 'required|array',
+//     ]);
+
+//     // Clean nulls out of valueColumns
+//     $validated['valueColumns'] = array_filter($validated['valueColumns']);
+
+    
+//     ReportData::create([
+//         'report_name' => $validated['file'],
+//         'report_json_data' => $validated, 
+//     ]);
+
+//     return response()->json(['message' => 'Mapping saved successfully!']);
+// }
+public function saveMapping(Request $request)
+{
+    
+    // $request->validate([
+    //     'file' => 'required|string',
+    //     'categoryColumn' => 'nullable|string',
+    //     'valueColumns' => 'required|array',
+    //     // DO NOT validate excelData here unless necessary
+    // ]);
+
+    $validated = $request->validate([
+    'file' => 'required|string',
+
+    // Allow both metadata mode and normal mode
+    'categoryColumn' => 'nullable|string',
+    'valueColumns' => 'nullable|array',
+
+    'categoryRow' => 'nullable|array',
+    'valueRow' => 'nullable|array',
+
+    'excelData' => 'required|array',
+]);
+
+
+
+    $data = $request->all();
+
+    
+    if (isset($data['valueColumns'])) {
+        $data['valueColumns'] = array_filter($data['valueColumns']);
+    }
+    
+    ReportData::create([
+        'report_name' => $data['file'],
+        'report_json_data' => $data,  
+    ]);
+
+    return response()->json([
+        'message' => 'Mapping saved successfully!'
+    ]);
+}
+
 
     
  public function upload(Request $request)

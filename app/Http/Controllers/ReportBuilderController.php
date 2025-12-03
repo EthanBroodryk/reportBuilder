@@ -28,7 +28,6 @@ class ReportBuilderController extends Controller
         });
 
         if (!$matchedFile) {
-            dd("Did NOT find: {$fileName} in: ", $files); 
             return Inertia::render('ReportBuilder', [
                 'fileData' => null,
                 'error' => "File '{$fileName}' not found.",
@@ -39,7 +38,6 @@ class ReportBuilderController extends Controller
 
        // dd($fullPath);
         $array = Excel::toArray([], $fullPath);
-
         return Inertia::render('ReportBuilder', [
         'fileData' => [
             'filename' => basename($matchedFile),

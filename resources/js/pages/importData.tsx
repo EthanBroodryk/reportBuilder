@@ -20,6 +20,9 @@ export default function ImportData({ files: initialFiles }: ImportDataProps) {
     { title: "Import Data", href: "/report-builder/import" }
   ];
 
+  // Detect if file is metadata-only (1 row)
+  const metadataMode = excelData.length === 1;
+
   // Handle file upload / drop
   const onDrop = (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -50,59 +53,80 @@ export default function ImportData({ files: initialFiles }: ImportDataProps) {
     });
   };
 
-  // Initialize column roles when data loads
+  // Initialize column roles when data loads (only if not metadata mode)
   useEffect(() => {
-    if (excelData.length > 0) {
+    if (excelData.length > 0 && !metadataMode) {
       const headers = Object.keys(excelData[0]);
       const defaultRoles = Object.fromEntries(headers.map(h => [h, '' as '' ]));
       setColumnRoles(defaultRoles);
     }
-  }, [excelData]);
+  }, [excelData, metadataMode]);
 
   // Handle select change
-const handleRoleChange = (column: string, role: 'category' | 'value' | '') => {
-  if (role === 'category') {
-    const updated = Object.fromEntries(
-      Object.keys(columnRoles).map(h => [
-        h, 
-        (h === column ? 'category' : (columnRoles[h] === 'category' ? '' : columnRoles[h]))
-      ])
-    ) as Record<string, '' | 'category' | 'value'>; // <-- cast here
+  const handleRoleChange = (column: string, role: 'category' | 'value' | '') => {
+    if (role === 'category') {
+      const updated = Object.fromEntries(
+        Object.keys(columnRoles).map(h => [
+          h,
+          (h === column ? 'category' : (columnRoles[h] === 'category' ? '' : columnRoles[h]))
+        ])
+      ) as Record<string, '' | 'category' | 'value'>;
 
-    setColumnRoles(updated);
-  } else {
-    setColumnRoles({
-      ...columnRoles,
-      [column]: role
-    });
-  }
-};
-
-
-  // Final save
-  const handleSaveMapping = () => {
-    const categoryColumn = Object.keys(columnRoles).find(col => columnRoles[col] === 'category');
-    const valueColumns = Object.keys(columnRoles).filter(col => columnRoles[col] === 'value');
-
-    if (!categoryColumn) {
-      alert("Please select a Category column.");
-      return;
+      setColumnRoles(updated);
+    } else {
+      setColumnRoles({
+        ...columnRoles,
+        [column]: role
+      });
     }
+  };
 
-    if (valueColumns.length === 0) {
-      alert("Please select at least one Value column.");
-      return;
-    }
+const handleSaveMapping = () => {
+  if (metadataMode) {
+    // First row is both category and value
+    console.log('target',excelData);
+    const row = excelData[0];
 
     const mapping = {
       file: selectedFile,
-      categoryColumn,
-      valueColumns
+      categoryRow: row,
+      valueRow: row,
+      excelData: excelData
     };
 
-    console.log("Saved Mapping:", mapping);
-    alert("Mapping saved!");
+    axios.post('/data/import-data/save-mapping', mapping)
+      .then(() => alert("Mapping saved (metadata mode)!"))
+      .catch(() => alert("Error saving mapping"));
+
+    return;
+  }
+
+  // Normal mode
+  const categoryColumn = Object.keys(columnRoles).find(col => columnRoles[col] === 'category');
+  const valueColumns = Object.keys(columnRoles).filter(col => columnRoles[col] === 'value');
+
+  if (!categoryColumn) {
+    alert("Please select a Category/Dimension column.");
+    return;
+  }
+
+  if (valueColumns.length === 0) {
+    alert("Please select at least one Value column.");
+    return;
+  }
+
+  const mapping = {
+    file: selectedFile,
+    categoryColumn,
+    valueColumns,
+    excelData
   };
+
+  axios.post('/data/import-data/save-mapping', mapping)
+    .then(() => alert("Mapping saved!"))
+    .catch(() => alert("Error saving mapping"));
+};
+
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -122,35 +146,44 @@ const handleRoleChange = (column: string, role: 'category' | 'value' | '') => {
           {isDragActive ? <p>Drop the file here ...</p> : <p>Drag & drop an Excel file here, or click to select</p>}
         </div>
 
-        {/* Column Role Selector */}
-        {excelData.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-2">Assign Column Roles</h3>
+        {/* Column Role Selector (hide selects in metadata mode) */}
+          {excelData.length > 0 && !metadataMode && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-2">Assign Column Roles</h3>
 
-            {Object.keys(columnRoles).map((header) => (
-              <div key={header} className="flex items-center gap-4 mb-2">
-                <span className="w-40">{header}</span>
+              {Object.keys(columnRoles).map((header) => (
+                <div key={header} className="flex items-center gap-4 mb-2">
+                  <span className="w-40">{header}</span>
 
-                <select
-                  className="border p-1 rounded"
-                  value={columnRoles[header]}
-                  onChange={(e) => handleRoleChange(header, e.target.value as any)}
-                >
-                  <option value="">-- Select Role --</option>
-                  <option value="category">Category / Dimension</option>
-                  <option value="value">Value / Measure</option>
-                </select>
+                  <select
+                    className="border p-1 rounded"
+                    value={columnRoles[header]}
+                    onChange={(e) => handleRoleChange(header, e.target.value as any)}
+                  >
+                    <option value="">-- Select Role --</option>
+                    <option value="category">Category / Dimension</option>
+                    <option value="value">Value / Measure</option>
+                  </select>
+                </div>
+              ))}
+
+   
+
+            </div>
+          )}
+                {/* Save Mapping Button */}
+
+              <div>
+              {excelData.length > 0 && (
+                <button
+                  onClick={handleSaveMapping}
+                  className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  >
+                  Save Mapping
+                </button>
+              )}
+
               </div>
-            ))}
-
-            <button
-              onClick={handleSaveMapping}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Save Mapping
-            </button>
-          </div>
-        )}
 
         {/* Excel Table */}
         {excelData.length > 0 && (

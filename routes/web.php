@@ -13,6 +13,7 @@ Route::prefix('data')->group(function () {
     Route::get('/', [DataController::class, 'importData'])->name('data.index');
     Route::post('/import-data/upload', [DataController::class, 'upload'])->name('data.store');
     Route::get('/import-data/data/{filename}', [DataController::class, 'getData']);
+    Route::post('/import-data/save-mapping', [DataController::class, 'saveMapping']);
 });
 
 

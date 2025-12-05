@@ -19,13 +19,24 @@ import { BookOpen, Folder, LayoutGrid, Upload, FileText } from 'lucide-react';
 import AppLogo from './app-logo';
 
 
+// interface fileProps {
+
+//     files:{
+//         file:any[]
+//     }
+
+// }
+
+
 export async function getFiles(): Promise<NavItem[]> {
     try {
         const response = await axios.get('/api/reports');
+        console.log('target',response.data)
         return response.data.map((file: any) => ({
             ...file,
             icon: FileText,
         }));
+        
     } catch (error) {
         console.error('Error fetching files:', error);
         return [];

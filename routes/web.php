@@ -17,20 +17,22 @@ Route::prefix('data')->group(function () {
 });
 
 
-Route::get('/api/reports',function(){
+ Route::get('/api/reports',[DataController::class,'getfiles']);
 
-    $path = public_path('storage/imports');
-    $files = collect(File::files($path))->map(function($file){
-        return [
-            'title' => pathinfo($file->getFilename(), PATHINFO_FILENAME),
-            'href' => '/reports/' . strtolower(str_replace(' ', '-', pathinfo($file->getFilename(), PATHINFO_FILENAME))),
-            'icon' => 'FileText', 
-        ];
+// Route::get('/api/reports',function(){
 
-    });
-     return response()->json($files);
+//     $path = public_path('storage/imports');
+//     $files = collect(File::files($path))->map(function($file){
+//         return [
+//             'title' => pathinfo($file->getFilename(), PATHINFO_FILENAME),
+//             'href' => '/reports/' . strtolower(str_replace(' ', '-', pathinfo($file->getFilename(), PATHINFO_FILENAME))),
+//             'icon' => 'FileText', 
+//         ];
 
-});
+//     });
+//      return response()->json($files);
+
+// });
 
 Route::prefix('report-builder')->name('report.')->group(function () {
     Route::get('/', [ReportBuilderController::class, 'index'])->name('builder');

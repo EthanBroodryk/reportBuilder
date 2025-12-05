@@ -10,6 +10,26 @@ use App\Models\ReportData;
 
 class DataController extends Controller
 {
+
+public function getFiles(Request $request)
+{
+    $reports = ReportData::pluck('report_name');
+
+    $files = collect($reports)->map(function ($file) {
+        $filenameWithoutExt = pathinfo($file, PATHINFO_FILENAME);
+
+        return [
+            'title' => $filenameWithoutExt,
+            'href' => '/reports/' . strtolower(str_replace(' ', '-', $filenameWithoutExt)),
+            'icon' => 'FileText',
+        ];
+    });
+
+    return response()->json($files);
+}
+
+
+
     public function importData()
     {
         // Get list of previously uploaded Excel files
@@ -69,7 +89,7 @@ public function saveMapping(Request $request)
 
 
     $data = $request->all();
-
+    //dd($data);
     
     if (isset($data['valueColumns'])) {
         $data['valueColumns'] = array_filter($data['valueColumns']);

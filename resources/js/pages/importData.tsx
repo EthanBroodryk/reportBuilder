@@ -21,7 +21,7 @@ export default function ImportData({ files: initialFiles }: ImportDataProps) {
   ];
 
   // Detect if file is metadata-only (1 row)
-  const metadataMode = excelData.length === 1;
+const metadataMode = excelData.length === 1;
 
   // Handle file upload / drop
   const onDrop = (acceptedFiles: File[]) => {
@@ -84,7 +84,6 @@ export default function ImportData({ files: initialFiles }: ImportDataProps) {
 const handleSaveMapping = () => {
   if (metadataMode) {
     // First row is both category and value
-    console.log('target',excelData);
     const row = excelData[0];
 
     const mapping = {

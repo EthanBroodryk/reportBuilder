@@ -89,7 +89,7 @@ public function saveMapping(Request $request)
 
 
     $data = $request->all();
-    //dd($data);
+
     
     if (isset($data['valueColumns'])) {
         $data['valueColumns'] = array_filter($data['valueColumns']);
